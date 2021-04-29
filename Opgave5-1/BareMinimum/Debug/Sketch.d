@@ -42,7 +42,8 @@ Sketch.d Sketch.o: .././Sketch.cpp \
  ..\include\libraries\Adafruit_SSD1306/Adafruit_SSD1306.h \
  ../../../../../../DS3231/DS3231.h ../../../../../../MPU6050/MPU6050.h \
  ..\include\libraries\Adafruit_Unified_Sensor/Adafruit_Sensor.h \
- ..\include\libraries\DHT_sensor_library/DHT.h
+ ..\include\libraries\DHT_sensor_library/DHT.h \
+ ../include/libraries/Functions/Functions.h
 
 ..\\..\ArduinoCore\include\core/Arduino.h:
 
@@ -135,3 +136,5 @@ c:\program\ files\ (x86)\atmel\studio\7.0\toolchain\avr8\avr8-gnu-toolchain\avr\
 ..\include\libraries\Adafruit_Unified_Sensor/Adafruit_Sensor.h:
 
 ..\include\libraries\DHT_sensor_library/DHT.h:
+
+../include/libraries/Functions/Functions.h:

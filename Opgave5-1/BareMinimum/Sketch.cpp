@@ -9,6 +9,7 @@
 #include <Adafruit_Sensor.h>
 #include <DHT.h>
 #include <string.h>
+#include <Functions.h>
 
 
 #define DHTPIN 2
@@ -25,6 +26,8 @@ Adafruit_SSD1306 display(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire, OLED_RESET);
 int positionX = 0;
 int positionY = 0;
 
+int x = 0;
+
 DS3231 clock;
 RTCDateTime dt;
 
@@ -32,78 +35,40 @@ MPU6050 mpu;
 
 DHT dht(DHTPIN, DHTTYPE);
 
-void checkSettings()
-{
-	Serial.println();
-	
-	Serial.print(" * Sleep Mode:        ");
-	Serial.println(mpu.getSleepEnabled() ? "Enabled" : "Disabled");
-	
-	Serial.print(" * Clock Source:      ");
-	switch(mpu.getClockSource())
-	{
-		case MPU6050_CLOCK_KEEP_RESET:     Serial.println("Stops the clock and keeps the timing generator in reset"); break;
-		case MPU6050_CLOCK_EXTERNAL_19MHZ: Serial.println("PLL with external 19.2MHz reference"); break;
-		case MPU6050_CLOCK_EXTERNAL_32KHZ: Serial.println("PLL with external 32.768kHz reference"); break;
-		case MPU6050_CLOCK_PLL_ZGYRO:      Serial.println("PLL with Z axis gyroscope reference"); break;
-		case MPU6050_CLOCK_PLL_YGYRO:      Serial.println("PLL with Y axis gyroscope reference"); break;
-		case MPU6050_CLOCK_PLL_XGYRO:      Serial.println("PLL with X axis gyroscope reference"); break;
-		case MPU6050_CLOCK_INTERNAL_8MHZ:  Serial.println("Internal 8MHz oscillator"); break;
-	}
-	
-	Serial.print(" * Gyroscope:         ");
-	switch(mpu.getScale())
-	{
-		case MPU6050_SCALE_2000DPS:        Serial.println("2000 dps"); break;
-		case MPU6050_SCALE_1000DPS:        Serial.println("1000 dps"); break;
-		case MPU6050_SCALE_500DPS:         Serial.println("500 dps"); break;
-		case MPU6050_SCALE_250DPS:         Serial.println("250 dps"); break;
-	}
-	
-	
-	Serial.print(" * Gyroscope offsets: ");
-	Serial.print(mpu.getGyroOffsetX());
-	Serial.print(" / ");
-	Serial.print(mpu.getGyroOffsetY());
-	Serial.print(" / ");
-	Serial.println(mpu.getGyroOffsetZ());
-	
-	Serial.println();
-}
 
 
 void setup()
 {
 	Serial.begin(9600);
 
-	// SSD1306_SWITCHCAPVCC = generate display voltage from 3.3V internally
-	if(!display.begin(SSD1306_SWITCHCAPVCC, 0x3C))
-	{ // Address for 128x64
-		Serial.println(F("SSD1306 allocation failed"));
-		for(;;); // Don't proceed, loop forever
-	}
-		display.clearDisplay();
-
-		while(!mpu.begin(MPU6050_SCALE_2000DPS, MPU6050_RANGE_2G))
-		{
-			Serial.println("Could not find a valid MPU6050 sensor, check wiring!");
-			delay(500);
-		}
-		
-		  Serial.begin(9600);
+	//// SSD1306_SWITCHCAPVCC = generate display voltage from 3.3V internally
+	//if(!display.begin(SSD1306_SWITCHCAPVCC, 0x3C))
+	//{ // Address for 128x64
+		//Serial.println(F("SSD1306 allocation failed"));
+		//for(;;); // Don't proceed, loop forever
+	//}
+		//display.clearDisplay();
+//
+		//while(!mpu.begin(MPU6050_SCALE_2000DPS, MPU6050_RANGE_2G))
+		//{
+			//Serial.println("Could not find a valid MPU6050 sensor, check wiring!");
+			//delay(500);
+		//}
+		//
+		  //Serial.begin(9600);
   Wire.begin();
   
-  clock.begin();
-  
-  clock.setDateTime(__DATE__, __TIME__);
-  
-  mpu.calibrateGyro();
-  
-  //DS3231_init(DS3231_CONTROL_INTCN);
-  /*----------------------------------------------------------------------------
-  In order to synchronise your clock module, insert timetable values below !
-  ----------------------------------------------------------------------------*/
-  checkSettings();
+  //clock.begin();
+  //
+  //clock.setDateTime(__DATE__, __TIME__);
+  //
+  //mpu.calibrateGyro();
+  //
+  ////DS3231_init(DS3231_CONTROL_INTCN);
+  ///*----------------------------------------------------------------------------
+  //In order to synchronise your clock module, insert timetable values below !
+  //----------------------------------------------------------------------------*/
+  //checkSettings();
   
   dht.begin();
 		
@@ -111,45 +76,60 @@ void setup()
 
 void loop()
 {
+	
+String data = String("field1=" + String(dht.readTemperature()) + "&field2=" + String(dht.readHumidity()));
 
-display.cp437(true);
-display.setCursor(0,0);
-display.setTextSize(1); // Normal 1:1 pixel scale
-display.setTextColor(WHITE); // Draw white text
-display.clearDisplay();
+I2CScanner();
 
+Wire.beginTransmission(4); // transmit to device #4
+//Wire.write("x");        // sends five bytes
+Wire.print(data);              // sends one byte
+Wire.endTransmission();    // stop transmitting
 
-float humidity = dht.readHumidity();
-float temperatur = dht.readTemperature();
-float heatindex = dht.computeHeatIndex(temperatur, temperatur, false);
+Serial.println(data);
 
-display.println(F("Humidity: "));
-display.setTextSize(2);
-display.print(humidity);
-display.println(F(" %"));
-
-display.setCursor(0, 32);
-
-display.setTextSize(1);
-display.println(F("Temperature: "));
-display.setTextSize(2);
-display.print(temperatur);
-//display.write(167);
-
-display.print(cout << temperatur << " " << 167 << "C")
-
-display.print(F(" " cout << 167 << "C "));
-
-//display.write(167);
-//display.print(heatindex);
-//display.write(167);
-//display.print(F("°C "));
-
-display.display();
-
+//x++;
 delay(1000);
 
-dht.computeHeatIndex();
+}
+
+
+void ShowTemp()
+{
+	display.cp437(true);
+	display.setCursor(0,0);
+	display.setTextSize(1); // Normal 1:1 pixel scale
+	display.setTextColor(WHITE); // Draw white text
+	display.clearDisplay();
+
+
+	float humidity = dht.readHumidity();
+	float temperatur = dht.readTemperature();
+	float heatindex = dht.computeHeatIndex(temperatur, temperatur, false);
+
+	display.println(F("Humidity: "));
+	display.setTextSize(2);
+	display.print(humidity);
+	display.println(F(" %"));
+
+	display.setCursor(0, 32);
+
+	display.setTextSize(1);
+	display.println(F("Temperature: "));
+	display.setTextSize(2);
+	display.print(temperatur);
+	display.print(" ");
+	display.write(167);
+	display.println("C");
+
+	//display.write(167);
+	//display.print(heatindex);
+	//display.write(167);
+	//display.print(F("°C "));
+
+	display.display();
+
+	delay(1000);
 }
 
 void Gyro(){
@@ -187,7 +167,7 @@ void Gyro(){
 }
 
 void BouncingClock(){
-	display.setTextSize(1); // Normal 1:1 pixel scale
+	display.setTextSize(2); // Normal 1:1 pixel scale
 	display.setTextColor(WHITE); // Draw white text
 	
 	
@@ -228,3 +208,82 @@ void BouncingClock(){
 	display.display();
 }
 
+void checkSettings()
+{
+	Serial.println();
+	
+	Serial.print(" * Sleep Mode:        ");
+	Serial.println(mpu.getSleepEnabled() ? "Enabled" : "Disabled");
+	
+	Serial.print(" * Clock Source:      ");
+	switch(mpu.getClockSource())
+	{
+		case MPU6050_CLOCK_KEEP_RESET:     Serial.println("Stops the clock and keeps the timing generator in reset"); break;
+		case MPU6050_CLOCK_EXTERNAL_19MHZ: Serial.println("PLL with external 19.2MHz reference"); break;
+		case MPU6050_CLOCK_EXTERNAL_32KHZ: Serial.println("PLL with external 32.768kHz reference"); break;
+		case MPU6050_CLOCK_PLL_ZGYRO:      Serial.println("PLL with Z axis gyroscope reference"); break;
+		case MPU6050_CLOCK_PLL_YGYRO:      Serial.println("PLL with Y axis gyroscope reference"); break;
+		case MPU6050_CLOCK_PLL_XGYRO:      Serial.println("PLL with X axis gyroscope reference"); break;
+		case MPU6050_CLOCK_INTERNAL_8MHZ:  Serial.println("Internal 8MHz oscillator"); break;
+	}
+	
+	Serial.print(" * Gyroscope:         ");
+	switch(mpu.getScale())
+	{
+		case MPU6050_SCALE_2000DPS:        Serial.println("2000 dps"); break;
+		case MPU6050_SCALE_1000DPS:        Serial.println("1000 dps"); break;
+		case MPU6050_SCALE_500DPS:         Serial.println("500 dps"); break;
+		case MPU6050_SCALE_250DPS:         Serial.println("250 dps"); break;
+	}
+	
+	
+	Serial.print(" * Gyroscope offsets: ");
+	Serial.print(mpu.getGyroOffsetX());
+	Serial.print(" / ");
+	Serial.print(mpu.getGyroOffsetY());
+	Serial.print(" / ");
+	Serial.println(mpu.getGyroOffsetZ());
+	
+	Serial.println();
+}
+
+void I2CScanner(){
+	byte error, address;
+	int nDevices;
+	
+	Serial.println("Scanning...");
+	
+	nDevices = 0;
+	for(address = 1; address < 127; address++ )
+	{
+		// The i2c_scanner uses the return value of
+		// the Write.endTransmisstion to see if
+		// a device did acknowledge to the address.
+		Wire.beginTransmission(address);
+		error = Wire.endTransmission();
+		
+		if (error == 0)
+		{
+			Serial.print("I2C device found at address 0x");
+			if (address<16)
+			Serial.print("0");
+			Serial.print(address,HEX);
+			Serial.println("  !");
+			
+			nDevices++;
+		}
+		else if (error==4)
+		{
+			Serial.print("Unknown error at address 0x");
+			if (address<16)
+			Serial.print("0");
+			Serial.println(address,HEX);
+		}
+	}
+	if (nDevices == 0)
+	Serial.println("No I2C devices found\n");
+	else
+	Serial.println("done\n");
+	
+	delay(5000);           // wait 5 seconds for next scan
+}
